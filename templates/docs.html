@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Documentation — DiabPredict</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --nav-grad-1:#4f46e5;
+      --nav-grad-2:#06b6d4;
+      --card-radius:14px;
+      --muted:#6b7280;
+    }
+
+    /* page */
+    body{
+      background:linear-gradient(180deg,#f8fafc,#ffffff);
+      min-height:100vh;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      color:#0f172a;
+    }
+    .container{max-width:1100px}
+
+    /* navbar */
+    .navbar-custom{
+      background:linear-gradient(90deg,var(--nav-grad-1),var(--nav-grad-2));
+      border-radius:12px;
+      padding:.35rem .75rem;
+    }
+    .navbar-custom .navbar-brand,.navbar-custom .nav-link{color:#fff;font-weight:500;}
+    .nav-pills .nav-link{
+      border-radius:999px;padding:.45rem .9rem;margin:0 .25rem;
+      color:rgba(255,255,255,0.95);border:1px solid rgba(255,255,255,0.08);
+      transition:all .18s ease-in-out;
+    }
+    .nav-pills .nav-link.active,.nav-pills .nav-link:hover{
+      background:rgba(255,255,255,0.14);transform:translateY(-2px);
+    }
+    .toggler-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}
+    .toggler-dot.one{background:#fff;opacity:.95}
+    .toggler-dot.two{background:rgba(255,255,255,0.75)}
+    .toggler-dot.three{background:rgba(255,255,255,0.55)}
+
+    /* card */
+    .card{border-radius:var(--card-radius);box-shadow:0 6px 20px rgba(15,23,42,0.06);background:#fff}
+
+    /* code / pre */
+    pre{background:#0b1220;color:#e6eef9;padding:1rem;border-radius:10px;overflow:auto}
+
+    /* blood pressure table style (Option A - styled HTML table) */
+    .bp-table{width:100%;border-collapse:collapse;margin-top:.5rem}
+    .bp-table thead th{background:linear-gradient(90deg,#eef2ff,#ecfeff);padding:.75rem;text-align:left;border-bottom:1px solid #e6eef9;font-weight:700}
+    .bp-table tbody td{padding:.6rem;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+    .bp-cat{font-weight:700}
+    .bp-note{color:var(--muted);font-size:.92rem}
+
+    /* responsive */
+    @media (max-width:768px){
+      .nav-pills .nav-link{margin:.15rem .12rem;padding:.35rem .6rem}
+      .container{padding:0 14px}
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-custom shadow-sm my-3 mx-3">
+    <div class="container-fluid px-3">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+        <span style="width:36px;height:36px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center">
+          <i class="bi bi-heart-pulse-fill" style="color:var(--nav-grad-1)"></i>
+        </span>
+        DiabPredict
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu" aria-controls="navmenu" aria-expanded="false">
+        <span class="toggler-dot one"></span>
+        <span class="toggler-dot two"></span>
+        <span class="toggler-dot three"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navmenu">
+        <ul class="navbar-nav ms-auto align-items-center nav-pills">
+          <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-house-door-fill me-1"></i> Home</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/docs"><i class="bi bi-book-fill me-1"></i> Docs</a></li>
+          <li class="nav-item"><a class="nav-link" href="/contact"><i class="bi bi-envelope-fill me-1"></i> Contact</a></li>
+          <li class="nav-item"><a class="nav-link" href="/feedback"><i class="bi bi-chat-dots-fill me-1"></i> Feedback</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="container py-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="card p-4">
+
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h4 class="mb-1">Documentation</h4>
+              <small class="text-muted"></small> <small class="text-muted"></small>
+            </div>
+            <div class="text-end">
+              <small class="text-muted"></small>
+            </div>
+          </div>
+
+          <!-- 1. About the project -->
+          <section class="mb-3">
+            <h6>1. About the project</h6>
+            <p class="mb-0">This system predicts diabetes risk using Machine Learning. It is intended as a screening/demo tool and not a medical diagnosis. Use clinical judgement and consult healthcare professionals for medical decisions.</p>
+          </section>
+
+          <hr>
+
+          <!-- 2. BMI -->
+          <section class="mb-3">
+            <h6>2. BMI</h6>
+            <p class="mb-0"><strong>Formula:</strong> <code>BMI = Weight (kg) / (Height in m × Height in m)</code>. Use this to estimate body mass relative to height; higher BMI can be associated with higher diabetes risk. :contentReference[oaicite:2]{index=2}</p>
+          </section>
+
+          <hr>
+
+          <!-- 3. Glucose level -->
+          <section class="mb-3">
+            <h6>3. Glucose level</h6>
+            <p class="mb-0"><strong>Categories (mg/dL):</strong></p>
+            <ul class="mb-2" style="margin-top:.4rem">
+              <li><strong>Normal:</strong> 70–99 mg/dL</li>
+              <li><strong>Pre-diabetes:</strong> 100–125 mg/dL</li>
+              <li><strong>Diabetes:</strong> 126+ mg/dL</li>
+            </ul>
+
+            <p class="mb-1"><strong>How glucose is measured (overview):</strong></p>
+            <p class="mb-0"><em>1) Glucometer (common for patients):</em> A glucometer measures blood glucose from a small fingertip sample using a test strip. The strip contains enzymes (e.g., glucose oxidase or glucose dehydrogenase) — glucose reacts and produces an electrical signal which the meter converts into mg/dL. Steps: prick fingertip → apply blood to strip → read meter. :contentReference[oaicite:3]{index=3}</p>
+
+            <p class="mb-0 mt-2"><em>2) Laboratory blood tests:</em> Labs perform plasma glucose measurements which are more precise. Common tests include Fasting Plasma Glucose (FPG) and Oral Glucose Tolerance Test (OGTT). Lab instruments often use reactions such as glucose oxidase–peroxidase or hexokinase methods. :contentReference[oaicite:4]{index=4}</p>
+          </section>
+
+          <hr>
+
+          <!-- 4. Blood Pressure table -->
+          <section class="mb-3">
+            <h6>4. Blood Pressure</h6>
+            <p class="mb-2 bp-note">Blood pressure categories (systolic/diastolic in mmHg). These are general clinical categories — individual targets may vary by age, pregnancy, or medical conditions. :contentReference[oaicite:5]{index=5}</p>
+
+            <!-- Styled HTML table (Option A) -->
+            <table class="bp-table" aria-label="Blood pressure categories">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th style="width:120px">Systolic (mmHg)</th>
+                  <th style="width:120px">Diastolic (mmHg)</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="bp-cat">Normal</td>
+                  <td>90 – 119</td>
+                  <td>60 – 79</td>
+                  <td class="bp-note">Ideal healthy range.</td>
+                </tr>
+                <tr>
+                  <td class="bp-cat">Elevated (Pre-high)</td>
+                  <td>120 – 129</td>
+                  <td>&lt; 80</td>
+                  <td class="bp-note">Higher than normal; lifestyle changes advised.</td>
+                </tr>
+                <tr>
+                  <td class="bp-cat">Stage 1 Hypertension</td>
+                  <td>130 – 139</td>
+                  <td>80 – 89</td>
+                  <td class="bp-note">Medical evaluation and possible treatment recommended.</td>
+                </tr>
+                <tr>
+                  <td class="bp-cat">Stage 2 Hypertension</td>
+                  <td>&ge; 140</td>
+                  <td>&ge; 90</td>
+                  <td class="bp-note">Typically requires medical treatment.</td>
+                </tr>
+                <tr>
+                  <td class="bp-cat">Hypertensive Crisis</td>
+                  <td>&ge; 180</td>
+                  <td>&ge; 120</td>
+                  <td class="bp-note">Emergency — seek immediate medical attention.</td>
+                </tr>
+                <tr>
+                  <td class="bp-cat">Low Blood Pressure (Hypotension)</td>
+                  <td>&lt; 90</td>
+                  <td>&lt; 60</td>
+                  <td class="bp-note">May cause dizziness/fainting; assess symptoms & cause.</td>
+                </tr>
+              </tbody>
+            </table>
+
+          </section>
+
+          <hr>
+
+          <!-- 5. Family history -->
+          <section class="mb-3">
+            <h6>5. Family History</h6>
+            <p class="mb-0">Family history affects diabetes risk. If close relatives (parents/siblings/grandparents) have diabetes, your risk increases due to:</p>
+            <ol class="mb-2" style="margin-top:.4rem">
+              <li><strong>Genetics:</strong> Inherited traits can reduce insulin sensitivity or insulin production.</li>
+              <li><strong>Shared lifestyle:</strong> Families often share diet, activity levels, and body-weight patterns which influence risk.</li>
+              <li><strong>Risk levels:</strong> One parent with type 2 diabetes can increase risk ~2–3×; both parents raise risk further. Type 1 is also genetic but less predictable.</li>
+            </ol>
+            <p class="mb-0 bp-note"><strong>It’s risk, not guarantee:</strong> Having family history means higher susceptibility but does not ensure diagnosis. Preventive actions (healthy weight, activity, monitoring) can reduce risk. :contentReference[oaicite:6]{index=6}</p>
+          </section>
+
+          <hr>
+
+          <!-- 6. Physical activity -->
+          <section class="mb-0">
+            <h6>6. Physical Activity</h6>
+            <p class="mb-0">Regular physical activity helps prevent and manage diabetes by improving insulin sensitivity, lowering blood sugar, supporting weight control, and improving cardiovascular health. Simple activities — walking, cycling, or light workouts — significantly reduce diabetes risk and help maintain stable glucose levels. :contentReference[oaicite:7]{index=7}</p>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
