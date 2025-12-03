@@ -6,17 +6,33 @@ import io
 import csv
 import pandas as pd
 import numpy as np
+import logging
+import traceback
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
+
+# logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Path to the model file (same directory as app.py)
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'diabetes_model_no_preg.pkl')
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(f"Model not found at {MODEL_PATH}. Make sure diabetes_model_no_preg.pkl is present.")
 
+# Load model bundle: expected structure { 'model': <estimator>, 'features': [list of names] }
 model_bundle = joblib.load(MODEL_PATH)
-model = model_bundle['model']
-features = model_bundle['features']  # list of feature names in order
+if isinstance(model_bundle, dict) and 'model' in model_bundle and 'features' in model_bundle:
+    model = model_bundle['model']
+    features = model_bundle['features']
+else:
+    # fallback: if bundle is just a model and you have no features saved, try to infer
+    model = model_bundle
+    features = getattr(model, "feature_names_in_", None)
+    if features is None:
+        # final fallback: common Pima feature order (adjust if your model used different)
+        features = ['Glucose', 'BloodPressure', 'BMI', 'DiabetesPedigreeFunction', 'Age', 'Insulin']
+    logger.warning("Model bundle didn't contain explicit 'model'/'features'. Using inferred/fallback features: %s", features)
 
 @app.route('/')
 def home():
@@ -40,6 +56,23 @@ def feedback():
         return render_template('feedback_thanks.html')
     return render_template('feedback.html')
 
+# Debug endpoint to inspect the loaded model
+@app.route('/debug_model', methods=['GET'])
+def debug_model():
+    try:
+        info = {
+            "model_type": str(type(model)),
+            "n_features_in": getattr(model, "n_features_in_", None),
+            "feature_names_in": getattr(model, "feature_names_in_", None),
+            "bundle_features": features
+        }
+        logger.info("debug_model: %s", info)
+        return jsonify(info)
+    except Exception as e:
+        tb = traceback.format_exc()
+        logger.exception("debug_model failed")
+        return jsonify({"error": "debug_failed", "detail": str(e), "trace": tb}), 500
+
 @app.route('/predict', methods=['POST'])
 def predict():
     """
@@ -48,32 +81,42 @@ def predict():
     Returns probability and binary outcome.
     Also saves the last prediction to last_prediction.csv for download.
     """
-    data = request.json or {}
+    # Accept JSON in multiple ways safely
+    data = request.get_json(silent=True) or request.json or {}
     try:
         # Build row dict in exact features order and convert to float
         row = {}
         for f in features:
-            # Accept empty or missing as 0; caller may wish to change
+            # Accept empty or missing as 0
             val = data.get(f, 0)
-            # If value is empty string, treat as 0
             if val == "" or val is None:
                 val = 0
             row[f] = float(val)
         # Create DataFrame so transformers that expect feature names work correctly
         X_df = pd.DataFrame([row], columns=features)
-
+        logger.info("Predict input row: %s", row)
     except Exception as e:
-        return jsonify({'error': 'Invalid input values', 'details': str(e)}), 400
+        tb = traceback.format_exc()
+        logger.exception("Invalid input values")
+        return jsonify({'error': 'Invalid input values', 'details': str(e), 'trace': tb}), 400
 
     # Predict
     try:
-        prob = float(model.predict_proba(X_df)[0, 1])
+        # prefer predict_proba if available
+        if hasattr(model, "predict_proba"):
+            prob = float(model.predict_proba(X_df)[0, 1])
+        else:
+            # fallback to predict (probability becomes 1.0 for positive class)
+            pred = int(model.predict(X_df)[0])
+            prob = 1.0 if pred == 1 else 0.0
+        outcome = int(prob >= 0.5)
+        logger.info("Prediction result: outcome=%s prob=%s", outcome, prob)
     except Exception as e:
-        return jsonify({'error': 'Model prediction failed', 'details': str(e)}), 500
+        tb = traceback.format_exc()
+        logger.exception("Model prediction failed")
+        return jsonify({'error': 'Model prediction failed', 'details': str(e), 'trace': tb}), 500
 
-    outcome = int(prob >= 0.5)
-
-    # Save last prediction as CSV for quick download
+    # Save last prediction as CSV for quick download (best-effort)
     try:
         out_path = 'last_prediction.csv'
         with open(out_path, 'w', newline='', encoding='utf-8') as csvfile:
@@ -81,8 +124,7 @@ def predict():
             writer.writerow(features + ['Probability'])
             writer.writerow([row[f] for f in features] + [round(prob, 6)])
     except Exception:
-        # do not fail prediction if saving fails; just ignore
-        pass
+        logger.exception("Failed to save last_prediction.csv (ignored)")
 
     return jsonify({'probability': prob, 'outcome': outcome})
 
@@ -99,6 +141,6 @@ def download_last():
     return ('No saved prediction', 404)
 
 if __name__ == '__main__':
-    # Use host 0.0.0.0 so container platforms can reach it; default port 5000
+    # Use host 0.0.0.0 so container platforms can reach it; port from env or 5000
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
