@@ -11,26 +11,23 @@ import traceback
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-# logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Path to the model file (same directory as app.py)
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'diabetes_model_no_preg.pkl')
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(f"Model not found at {MODEL_PATH}. Make sure diabetes_model_no_preg.pkl is present.")
 
-# Load model bundle: expected structure { 'model': <estimator>, 'features': [list of names] }
+
 model_bundle = joblib.load(MODEL_PATH)
 if isinstance(model_bundle, dict) and 'model' in model_bundle and 'features' in model_bundle:
     model = model_bundle['model']
     features = model_bundle['features']
 else:
-    # fallback: if bundle is just a model and you have no features saved, try to infer
     model = model_bundle
     features = getattr(model, "feature_names_in_", None)
     if features is None:
-        # final fallback: common Pima feature order (adjust if your model used different)
         features = ['Glucose', 'BloodPressure', 'BMI', 'DiabetesPedigreeFunction', 'Age', 'Insulin']
     logger.warning("Model bundle didn't contain explicit 'model'/'features'. Using inferred/fallback features: %s", features)
 
@@ -56,7 +53,6 @@ def feedback():
         return render_template('feedback_thanks.html')
     return render_template('feedback.html')
 
-# Debug endpoint to inspect the loaded model
 @app.route('/debug_model', methods=['GET'])
 def debug_model():
     try:
@@ -81,18 +77,14 @@ def predict():
     Returns probability and binary outcome.
     Also saves the last prediction to last_prediction.csv for download.
     """
-    # Accept JSON in multiple ways safely
     data = request.get_json(silent=True) or request.json or {}
     try:
-        # Build row dict in exact features order and convert to float
         row = {}
         for f in features:
-            # Accept empty or missing as 0
             val = data.get(f, 0)
             if val == "" or val is None:
                 val = 0
             row[f] = float(val)
-        # Create DataFrame so transformers that expect feature names work correctly
         X_df = pd.DataFrame([row], columns=features)
         logger.info("Predict input row: %s", row)
     except Exception as e:
@@ -102,11 +94,9 @@ def predict():
 
     # Predict
     try:
-        # prefer predict_proba if available
         if hasattr(model, "predict_proba"):
             prob = float(model.predict_proba(X_df)[0, 1])
         else:
-            # fallback to predict (probability becomes 1.0 for positive class)
             pred = int(model.predict(X_df)[0])
             prob = 1.0 if pred == 1 else 0.0
         outcome = int(prob >= 0.5)
@@ -116,7 +106,6 @@ def predict():
         logger.exception("Model prediction failed")
         return jsonify({'error': 'Model prediction failed', 'details': str(e), 'trace': tb}), 500
 
-    # Save last prediction as CSV for quick download (best-effort)
     try:
         out_path = 'last_prediction.csv'
         with open(out_path, 'w', newline='', encoding='utf-8') as csvfile:
